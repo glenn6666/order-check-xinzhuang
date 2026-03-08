@@ -10,12 +10,11 @@
             --success-green: #34a853;
             --pending-gray: #70757a;
             --bg-color: #f0f2f5;
-            --highlight-gold: #ffab00; /* 強調金色 */
+            --highlight-gold: #ffab00;
         }
         body { font-family: "Microsoft JhengHei", -apple-system, sans-serif; padding: 15px; max-width: 800px; margin: auto; background-color: var(--bg-color); }
         h2 { color: var(--primary-blue); text-align: center; margin-bottom: 20px; }
         
-        /* 搜尋框 */
         .search-container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .search-box { display: flex; gap: 10px; }
         input { flex: 1; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
@@ -24,16 +23,13 @@
 
         .warning-text { color: #e67e22; font-size: 0.85em; text-align: center; margin-bottom: 20px; padding: 10px; background-color: #fff3e0; border-radius: 8px; font-weight: bold; }
 
-        /* 查詢結果標頭 */
         .query-id-header { display: flex; align-items: center; background: white; padding: 15px 20px; border-radius: 10px; border-left: 6px solid var(--primary-blue); margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
         .query-id-text { font-size: 1.5em; font-weight: 900; color: var(--primary-blue); margin-left: 10px; }
 
-        /* 狀態分區標籤 */
         .section-header { padding: 8px 15px; border-radius: 5px; font-weight: bold; margin: 25px 0 12px 0; display: flex; align-items: center; font-size: 1em; }
         .header-arrived { background-color: #e6f4ea; color: var(--success-green); border-left: 5px solid var(--success-green); }
         .header-not-arrived { background-color: #f1f3f4; color: var(--pending-gray); border-left: 5px solid var(--pending-gray); }
 
-        /* 商品卡片樣式 */
         .card { background: white; padding: 18px; margin-bottom: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); position: relative; border-left: 5px solid transparent; }
         .arrived-card { border-left-color: var(--success-green); }
         .not-arrived-card { border-left-color: var(--pending-gray); opacity: 0.85; }
@@ -56,13 +52,13 @@
         .total-label { font-size: 0.9em; color: #aaa; }
         .total-val { font-weight: bold; }
         
-        /* 針對「已到貨金額」的特別強調 */
-        .arrived-total-label { font-size: 1.1em; color: #fff; }
-        .arrived-total-val { font-size: 1.6em; color: var(--highlight-gold); }
+        /* 已到貨金額：金色加大強調 */
+        .arrived-total-label { font-size: 1.15em; color: #fff; }
+        .arrived-total-val { font-size: 1.7em; color: var(--highlight-gold); }
         
-        /* 最後一行的樣式：改為純白不強調 */
-        .grand-total-label { font-size: 0.9em; color: #aaa; }
-        .grand-total-val { font-size: 1em; color: #fff; font-weight: normal; }
+        /* 最後一行：總金額(含未到貨) 白色不強調 */
+        .grand-total-label { font-size: 0.9em; color: #bbb; }
+        .grand-total-val { font-size: 1.05em; color: #fff; font-weight: normal; }
 
         .name-selector { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .name-btn { padding: 12px 20px; background: white; border: 2px solid var(--primary-blue); border-radius: 25px; color: var(--primary-blue); cursor: pointer; font-weight: bold; font-size: 1em; }
@@ -185,15 +181,15 @@
         const total = `
             <div class="total-container">
                 <div class="total-row">
-                    <div class="total-label arrived-total-label">💰 已到貨合計 (${stats.arr.i}品項 / ${stats.arr.q}件)</div>
+                    <div class="total-label arrived-total-label">💰 本次取貨應付 (已到貨)</div>
                     <div class="total-val arrived-total-val">$${stats.arr.t.toLocaleString()}</div>
                 </div>
                 <div class="total-row">
-                    <div class="total-label">未到貨合計 (${stats.not.i}品項 / ${stats.not.q}件)</div>
+                    <div class="total-label">未到貨金額 (${stats.not.i}品項)</div>
                     <div class="total-val">$${stats.not.t.toLocaleString()}</div>
                 </div>
                 <div class="total-row">
-                    <div class="total-label grand-total-label">應付金額總計 (含未到貨)</div>
+                    <div class="total-label grand-total-label">總金額 (含未到貨)</div>
                     <div class="total-val grand-total-val">$${(stats.arr.t + stats.not.t).toLocaleString()}</div>
                 </div>
             </div>`;
@@ -205,5 +201,3 @@
 </script>
 </body>
 </html>
-
-
