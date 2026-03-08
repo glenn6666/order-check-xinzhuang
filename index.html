@@ -44,7 +44,6 @@
 
         .empty-msg { text-align: center; padding: 25px; color: #aaa; background: white; border-radius: 12px; border: 1px dashed #ddd; }
 
-        /* 總結區塊 */
         .total-container { margin-top: 30px; background: #202124; color: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .total-row { display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #3c4043; }
         .total-row:last-child { border-bottom: none; border-top: 1px solid #555; padding-top: 15px; margin-top: 5px; }
@@ -52,11 +51,9 @@
         .total-label { font-size: 0.9em; color: #aaa; }
         .total-val { font-weight: bold; }
         
-        /* 已到貨金額：金色加大強調 */
         .arrived-total-label { font-size: 1.15em; color: #fff; }
         .arrived-total-val { font-size: 1.7em; color: var(--highlight-gold); }
         
-        /* 最後一行：總金額(含未到貨) 白色不強調 */
         .grand-total-label { font-size: 0.9em; color: #bbb; }
         .grand-total-val { font-size: 1.05em; color: #fff; font-weight: normal; }
 
@@ -71,7 +68,7 @@
 
 <div class="search-container">
     <div class="search-box">
-        <input type="text" id="nameInput" placeholder="輸入名字關鍵字 (例: 阿勝)">
+        <input type="text" id="nameInput" placeholder="輸入名字關鍵字">
         <button onclick="searchNames()">搜尋</button>
     </div>
 </div>
@@ -86,6 +83,12 @@
     const gid = '1574285114';
     const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
     let allRows = [];
+
+    // 清除貨幣格式轉為數字
+    function cleanPrice(val) {
+        if (!val) return 0;
+        return parseInt(val.toString().replace(/[$,\s]/g, '')) || 0;
+    }
 
     function parseCSV(text) {
         const rows = []; let currentRow = []; let currentField = ''; let inQuotes = false;
@@ -157,8 +160,11 @@
             const note = (row[1] || "").trim();
             const itemName = row[3].trim();
             const qty = parseInt(row[4]) || 0;
-            const price = parseInt((row[5] || "0").replace(/[$,]/g, '')) || 0;
-            const subtotal = parseInt((row[12] || "0").replace(/[$,]/g, '')) || 0;
+            
+            // 嘗試從欄位 5 或欄位 12 抓取金額 (自動偵測試算表結構)
+            const price = cleanPrice(row[5]); 
+            const subtotal = cleanPrice(row[12]) || (price * qty); 
+
             const isNot = note.includes("未到貨");
 
             const card = `
