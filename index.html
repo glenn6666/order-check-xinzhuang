@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安星水產中港店訂單查詢系統</title>
+    <title>安星水產泰山店訂單查詢系統</title>
     <style>
         :root {
             --primary-blue: #0d47a1;
             --success-green: #34a853;
             --pending-gray: #70757a;
             --bg-color: #f0f2f5;
+            --gold-color: #ffab00; /* 金色 */
         }
         body { font-family: "Microsoft JhengHei", -apple-system, sans-serif; padding: 15px; max-width: 800px; margin: auto; background-color: var(--bg-color); }
         h2 { color: var(--primary-blue); text-align: center; margin-bottom: 20px; }
         
-        /* 搜尋框 */
+        /* 搜尋框區塊 */
         .search-container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .search-box { display: flex; gap: 10px; }
         input { flex: 1; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
-        input:focus { border-color: var(--primary-blue); }
         button { padding: 12px 25px; background-color: var(--primary-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
         .warning-text { color: #e67e22; font-size: 0.85em; text-align: center; margin-bottom: 20px; padding: 10px; background-color: #fff3e0; border-radius: 8px; font-weight: bold; }
@@ -27,8 +27,8 @@
         .query-id-header { display: flex; align-items: center; background: white; padding: 15px 20px; border-radius: 10px; border-left: 6px solid var(--primary-blue); margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
         .query-id-text { font-size: 1.5em; font-weight: 900; color: var(--primary-blue); margin-left: 10px; }
 
-        /* 狀態分區標籤 */
-        .section-header { padding: 8px 15px; border-radius: 5px; font-weight: bold; margin: 25px 0 12px 0; display: flex; align-items: center; font-size: 1em; }
+        /* 狀態分區標頭 */
+        .section-header { padding: 8px 15px; border-radius: 5px; font-weight: bold; margin: 25px 0 12px 0; font-size: 1em; }
         .header-arrived { background-color: #e6f4ea; color: var(--success-green); border-left: 5px solid var(--success-green); }
         .header-not-arrived { background-color: #f1f3f4; color: var(--pending-gray); border-left: 5px solid var(--pending-gray); }
 
@@ -49,11 +49,14 @@
 
         /* 總結區塊 */
         .total-container { margin-top: 30px; background: #202124; color: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .total-row { display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #3c4043; }
+        .total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #3c4043; }
+        
+        /* 已到貨金額重點顯示 */
+        .arrived-total-val { font-size: 1.6em; color: var(--gold-color); font-weight: 900; }
+        
         .total-row:last-child { border-bottom: none; border-top: 1px solid #555; padding-top: 15px; margin-top: 5px; }
         .total-label { font-size: 0.9em; color: #aaa; }
-        .total-val { font-weight: bold; }
-        .grand-total { font-size: 1.5em; color: #ffab00; }
+        .total-val { font-weight: bold; font-size: 1.1em; color: white; }
 
         .name-selector { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .name-btn { padding: 12px 20px; background: white; border: 2px solid var(--primary-blue); border-radius: 25px; color: var(--primary-blue); cursor: pointer; font-weight: bold; font-size: 1em; }
@@ -62,11 +65,11 @@
 </head>
 <body>
 
-<h2>安星水產中港店訂單查詢系統</h2>
+<h2>安星水產泰山店訂單查詢系統</h2>
 
 <div class="search-container">
     <div class="search-box">
-        <input type="text" id="nameInput" placeholder="輸入名字關鍵字 (例: 阿勝)">
+        <input type="text" id="nameInput" placeholder="輸入名字關鍵字 (例: A)">
         <button onclick="searchNames()">搜尋</button>
     </div>
 </div>
@@ -77,9 +80,8 @@
 <div id="results"></div>
 
 <script>
-    // 已更新為中港店的 Google Sheet ID 與 GID
-    const sheetId = '1_CFjdaA-QKz7fH0E1CMXfzWXUO66HuAECXJ5ytLb8jI';
-    const gid = '1574285114';
+    const sheetId = '1pjTOojFm4-_rGpGGN9Nv31GCdYMPtSDQkfn8vbyBFLQ';
+    const gid = '171915529';
     const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
     let allRows = [];
 
@@ -121,7 +123,6 @@
             for (let i = 1; i < allRows.length; i++) {
                 const customer = (allRows[i][2] || "").trim();
                 const status = (allRows[i][0] || "").trim().toUpperCase();
-                // 排除已取貨 (TRUE) 的資料
                 if (customer.toLowerCase().includes(query) && status !== "TRUE") matchedNames.add(customer);
             }
             if (matchedNames.size === 0) {
@@ -135,7 +136,7 @@
                 });
                 selectionArea.innerHTML = btnHtml + `</div>`;
             }
-        } catch (e) { alert('連線失敗！請確保試算表已開啟「知道連結的人均可查看」權限。'); }
+        } catch (e) { alert('連線失敗！'); }
     }
 
     function showDetails(targetName) {
@@ -149,7 +150,6 @@
         for (let i = 1; i < allRows.length; i++) {
             const row = allRows[i];
             const customer = (row[2] || "").trim();
-            // 跳過不符名稱、已取貨或品項名稱為空的列
             if (customer !== targetName || (row[0] || "").trim().toUpperCase() === "TRUE" || !row[3]) continue;
 
             const note = (row[1] || "").trim();
@@ -176,19 +176,21 @@
         }
 
         const header = `<div class="query-id-header"><span>📍</span><span class="query-id-text">查詢 ID : ${targetName}</span></div>`;
+        
+        // 總結區塊修改
         const total = `
             <div class="total-container">
                 <div class="total-row">
                     <div class="total-label">已到貨合計 (${stats.arr.i}品項 / ${stats.arr.q}件)</div>
-                    <div class="total-val">$${stats.arr.t.toLocaleString()}</div>
+                    <div class="arrived-total-val">$${stats.arr.t.toLocaleString()}</div>
                 </div>
                 <div class="total-row">
                     <div class="total-label">未到貨合計 (${stats.not.i}品項 / ${stats.not.q}件)</div>
                     <div class="total-val">$${stats.not.t.toLocaleString()}</div>
                 </div>
                 <div class="total-row">
-                    <div class="total-label" style="color:white; font-size:1.1em;">應付金額總計</div>
-                    <div class="total-val grand-total">$${(stats.arr.t + stats.not.t).toLocaleString()}</div>
+                    <div class="total-label">應付金額總計</div>
+                    <div class="total-val">$${(stats.arr.t + stats.not.t).toLocaleString()}</div>
                 </div>
             </div>`;
 
