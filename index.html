@@ -7,8 +7,8 @@
     <style>
         :root {
             --primary-blue: #0d47a1;
-            --success-green: #34a853;
-            --pending-gray: #70757a;
+            --success-green: #34a853; /* 綠色 */
+            --pending-gray: #70757a; /* 灰色 */
             --bg-color: #f0f2f5;
             --highlight-gold: #ffab00;
         }
@@ -34,8 +34,10 @@
         .arrived-card { border-left-color: var(--success-green); }
         .not-arrived-card { border-left-color: var(--pending-gray); opacity: 0.85; }
 
-        .status-badge { background: #e8f0fe; color: var(--primary-blue); font-size: 0.75em; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; font-weight: bold; }
-        .not-arrived-badge { background: #eee; color: #666; }
+        /* 標籤樣式修正 */
+        .status-badge { color: white; font-size: 0.8em; padding: 4px 10px; border-radius: 6px; display: inline-block; margin-bottom: 8px; font-weight: bold; }
+        .arrived-badge { background: var(--success-green); } /* 未取貨：綠底白字 */
+        .not-arrived-badge { background: var(--pending-gray); } /* 未到貨：灰底白字 */
 
         .item-name { font-size: 1.15em; font-weight: bold; color: #333; margin-bottom: 6px; }
         .item-info { color: #666; font-size: 0.9em; margin-bottom: 8px; }
@@ -84,7 +86,6 @@
     const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
     let allRows = [];
 
-    // 清除貨幣格式轉為數字
     function cleanPrice(val) {
         if (!val) return 0;
         return parseInt(val.toString().replace(/[$,\s]/g, '')) || 0;
@@ -148,7 +149,7 @@
         const resultDiv = document.getElementById('results');
         let stats = { arr: { i: 0, q: 0, t: 0 }, not: { i: 0, q: 0, t: 0 } };
         let arrHtml = `<div class="section-header header-arrived">✅ 已到貨商品 (待處理)</div>`;
-        let notHtml = `<div class="section-header header-not-arrived">⏳ 未到貨商品 (待通知)</div>`;
+        let notHtml = `<div class="section-header header-not-arrived">⏳ 未到貨商品 (預購中)</div>`;
         
         let hasArr = false, hasNot = false;
 
@@ -160,19 +161,18 @@
             const note = (row[1] || "").trim();
             const itemName = row[3].trim();
             const qty = parseInt(row[4]) || 0;
-            
-            // 嘗試從欄位 5 或欄位 12 抓取金額 (自動偵測試算表結構)
             const price = cleanPrice(row[5]); 
             const subtotal = cleanPrice(row[12]) || (price * qty); 
 
             const isNot = note.includes("未到貨");
+            const shouldShowNote = note !== "" && note !== "未到貨";
 
             const card = `
                 <div class="card ${isNot ? 'not-arrived-card' : 'arrived-card'}">
-                    <div class="status-badge ${isNot ? 'not-arrived-badge' : ''}">${isNot ? '待到貨' : '未取貨'}</div>
+                    <div class="status-badge ${isNot ? 'not-arrived-badge' : 'arrived-badge'}">${isNot ? '未到貨' : '未取貨'}</div>
                     <div class="item-name">${itemName}</div>
                     <div class="item-info">單價: $${price.toLocaleString()} | 數量: ${qty}</div>
-                    ${note ? `<div class="item-note">📝 備註: ${note}</div>` : ''}
+                    ${shouldShowNote ? `<div class="item-note">📝 備註: ${note}</div>` : ''}
                     <div class="item-price-tag">$${subtotal.toLocaleString()}</div>
                 </div>`;
 
