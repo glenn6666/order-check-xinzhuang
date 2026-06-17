@@ -22,12 +22,43 @@
         input { flex: 1; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
         button.search-btn { padding: 12px 25px; background-color: var(--primary-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        .warning-text { color: #e67e22; font-size: 0.85em; text-align: center; margin-bottom: 20px; padding: 10px; background-color: #fff3e0; border-radius: 8px; font-weight: bold; }
+        .warning-text { color: #e67e22; font-size: 0.85em; text-align: center; margin-bottom: 10px; padding: 10px; background-color: #fff3e0; border-radius: 8px; font-weight: bold; }
+
+        /* 跑馬燈外層容器 */
+        .marquee-container {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 10px;
+            padding: 10px 0;
+        }
+        /* 獨立跑馬燈軌道 */
+        .marquee-track {
+            white-space: nowrap;
+            overflow: hidden;
+            display: flex;
+            margin-bottom: 5px;
+        }
+        .marquee-track:last-child { margin-bottom: 0; }
+        /* 跑馬燈大字體、醒目顏色與15秒動畫 */
+        .marquee-text {
+            display: inline-block;
+            padding-left: 100%;
+            font-size: 1.15em;
+            font-weight: bold;
+            color: #d32f2f;
+            animation: marqueeEffect 15s linear infinite;
+        }
+        @keyframes marqueeEffect {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
 
         .card { background: white; padding: 18px; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative; border-left: 6px solid transparent; }
         .item-with-img { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .item-text-part { flex: 1; }
-        .product-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; background: #f9f9f9; }
 
         .item-name { font-size: 1.3em; font-weight: bold; color: #111; margin-bottom: 5px; }
         .item-info-large { font-size: 1.1em; color: #444; font-weight: bold; }
@@ -43,7 +74,7 @@
         .section-header { padding: 10px 15px; border-radius: 8px; font-weight: bold; margin: 25px 0 12px 0; font-size: 1.05em; display: flex; align-items: center; }
         .header-released { background-color: #fff3e0; color: var(--released-orange); border-left: 5px solid var(--released-orange); }
         .header-arrived { background-color: #e6f4ea; color: var(--success-green); border-left: 5px solid var(--success-green); }
-        .header-not-arrived { background-color: #f1f3f4; color: var(--pending-gray); border-left: 5px solid var(--pending-gray); }
+        .header-not-arrived { background-color: var(--pending-gray); border-left: 5px solid var(--pending-gray); }
 
         .total-container { margin-top: 30px; background: #263238; color: white; border-radius: 15px; padding: 25px; }
         .total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #455a64; }
@@ -79,6 +110,8 @@
 
 <div class="warning-text">⚠️ 系統偶有出錯的可能，若有問題請直接詢問版面小編</div>
 
+<div id="announcementArea" class="marquee-container" style="display: none;"></div>
+
 <div id="selectionArea"></div>
 <div id="results"></div>
 
@@ -92,8 +125,8 @@
 
 <script>
     const sheetId = '1_CFjdaA-QKz7fH0E1CMXfzWXUO66HuAECXJ5ytLb8jI';
-    const gidMain = '1574285114'; // 已到貨/總表
-    const gidPending = '772264837'; // 未到貨專區表單
+    const gidMain = '1574285114'; 
+    const gidPending = '772264837'; 
     
     let mainRows = [];
     let pendingRows = [];
@@ -134,8 +167,40 @@
             ]);
             mainRows = parseCSV(await resp1.text());
             pendingRows = parseCSV(await resp2.text());
+            
+            // 載入資料後，先渲染跑馬燈公告與現貨區
+            renderMarqueeAnnouncements();
             showReleasedItems();
         } catch (e) { console.error("資料讀取失敗", e); }
+    }
+
+    // 新增：動態讀取未到貨表單的 B 欄與 D 欄，產生獨立跑馬燈
+    function renderMarqueeAnnouncements() {
+        const marqueeArea = document.getElementById('announcementArea');
+        let marqueeHtml = '';
+        let hasAnnouncement = false;
+
+        for (let i = 1; i < pendingRows.length; i++) {
+            const row = pendingRows[i];
+            const type = (row[1] || "").trim(); // B欄：備註或類型
+            const content = (row[3] || "").trim(); // D欄：商品名稱或公告內容
+
+            if (type === "公告" && content !== "") {
+                hasAnnouncement = true;
+                // 每一筆公告包成一個獨立的 track 軌道
+                marqueeHtml += `
+                    <div class="marquee-track">
+                        <div class="marquee-text">📢 ${content}</div>
+                    </div>`;
+            }
+        }
+
+        if (hasAnnouncement) {
+            marqueeArea.innerHTML = marqueeHtml;
+            marqueeArea.style.display = 'block';
+        } else {
+            marqueeArea.style.display = 'none';
+        }
     }
 
     window.onload = fetchData;
@@ -175,15 +240,16 @@
         if (!query) return alert('請輸入關鍵字！');
         
         const matchedNames = new Set();
-        // 從主表找名字
         for (let i = 1; i < mainRows.length; i++) {
             const customer = (mainRows[i][2] || "").trim();
             if (customer.toLowerCase().includes(query)) matchedNames.add(customer);
         }
-        // 從未到貨表找名字
         for (let i = 1; i < pendingRows.length; i++) {
             const customer = (pendingRows[i][2] || "").trim();
-            if (customer.toLowerCase().includes(query)) matchedNames.add(customer);
+            // 排除公告列，只抓有名字的訂單
+            if ((pendingRows[i][1] || "").trim() !== "公告" && customer.toLowerCase().includes(query)) {
+                matchedNames.add(customer);
+            }
         }
 
         const selectionArea = document.getElementById('selectionArea');
@@ -212,7 +278,7 @@
 
         let hasArr = false, hasNot = false;
 
-        // 1. 處理已到貨 (從主表抓，排除備註含「未到貨」)
+        // 已到貨
         for (let i = 1; i < mainRows.length; i++) {
             const row = mainRows[i];
             const customer = (row[2] || "").trim();
@@ -246,17 +312,17 @@
             </div>`;
         }
 
-        // 2. 處理未到貨 (改為從 pendingRows 抓取)
+        // 未到貨 (排除公告列)
         for (let i = 1; i < pendingRows.length; i++) {
             const row = pendingRows[i];
             const customer = (row[2] || "").trim();
-            if (customer !== targetName || !row[3]) continue;
+            const note = (row[1] || "").trim();
+            if (customer !== targetName || !row[3] || note === "公告") continue;
 
             const itemName = row[3].trim();
             const qty = parseInt(row[4]) || 0;
             const price = cleanPrice(row[5]);
             const subtotal = cleanPrice(row[12]) || (price * qty);
-            const note = (row[1] || "").trim();
 
             hasNot = true; stats.not.t += subtotal; stats.not.i++;
             notHtml += `<div class="card" style="border-left-color: var(--pending-gray);">
